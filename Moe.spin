@@ -24,48 +24,90 @@ CON
   Ping_Out = 26 'correct!
   Ping_In = 24  'correct!
   BUTTON_PINS   = $FF
+  'position constants
+  Head_Up = 2300
+  Head_Level = 1500
+  Head_Down = 800
+  Head_Right = 2500
+  Head_Forward = 1500
+  Head_Left = 500
   
-
 VAR
   Long ButtonState_Stack[20]'stack space allotment 
     
 OBJ
 
-  Buttons          : "Touch Buttons"
+  'Buttons          : "Touch Buttons"
   SERVO            : "Servo32v7.spin"
   ping             : "Ping"
-  DEBUG            : "Parallax Serial Terminal"                            ' for debugging
+  'DEBUG            : "Parallax Serial Terminal"                            ' for debugging
 
 PRI Initialization
-  Buttons.start(_CLKFREQ / 15)                         ' Launch the touch buttons driver
   dira[23..16]~~                                        ' Set the LEDs as outputs
-  cognew(ButtonStateCheck, @ButtonState_Stack)
+  Lights_On
+  Relax
+  Tedasena(1)
   SERVO.Start
   SERVO.Ramp
-  {
-  DEBUG.start(250000)   
-  DEBUG.Str(String(DEBUG#CS))
-  }
-PRI ButtonStateCheck
-  repeat
-    outa[23..16] := Buttons.State                       ' Light the LEDs when touching the corresponding buttons 
+  'Relax
+  wait_this_fraction_of_a_second(1)
   
-PUB Main | i, ping_dist, pace
-  Initialization
-  {{
-  repeat 20
-    wait_this_fraction_of_a_second(1)
+PRI Lights_On
     outa[23..16]~~
-    wait_this_fraction_of_a_second(1)
+
+PRI Lights_Off
     outa[23..16]~
-   }}
-   'repeat i from 5 to 1
-   wait_this_fraction_of_a_second(1)
-    pace:=100
-    look_up(1)
-    'look_down(1)
-   wait_this_fraction_of_a_second(1) 
-   ButtonStateCheck
+
+PRI pausefor(this_long)
+  repeat this_long
+    wait_this_fraction_of_a_second(120)'this sets pace - smaller is slower, like 100, bigger is faster, like 500
+    
+PRI Position_Walkthrough   | the_duration
+
+  the_duration:=100
+  
+  Lights_Off
+  look_up(the_duration)
+  
+  Lights_On
+  look_down(the_duration)
+  
+  Lights_Off
+  look_ahead(the_duration)
+
+  Lights_On
+  look_left(the_duration) 
+ 
+  Lights_Off
+  look_right(the_duration)
+  pausefor(the_duration)
+  
+  Lights_On
+  look_forward(the_duration)
+  'pausefor(the_duration)
+  
+  'SERVO.SetRamp(Servo_right_Hip,2500,the_duration)'2200 is RIGHT HIP straight ahead
+  'SERVO.SetRamp(Servo_left_Hip,1500,the_duration)'800 is LEFT HIP straight ahead
+  'SERVO.SetRamp(Servo_Neck,2000,the_duration) '1500 is NECK a little left of center
+  'SERVO.SetRamp(Servo_right_Hip,2500,the_duration)'2200 is RIGHT HIP straight ahead
+  'SERVO.SetRamp(Servo_left_Hip,1500,the_duration)'800 is LEFT HIP straight ahead
+  'SERVO.SetRamp(Servo_Neck,2000,the_duration) '1500 is NECK a little left of center
+  Lights_Off  
+  pausefor(the_duration)
+  
+    
+PUB Main | i, ping_dist, pace
+
+  Initialization
+  
+  'center_all_servos(250)'don't use this until all parts are callibrated
+  
+  wait_this_fraction_of_a_second(1)
+  Position_Walkthrough
+  wait_this_fraction_of_a_second(1)
+  Relax
+
+   'ButtonStateCheck
      {
   'repeat
     'wait_this_fraction_of_a_second(1)
@@ -80,16 +122,10 @@ PUB Main | i, ping_dist, pace
 
       DEBUG.Dec(ping_dist)
       }
-      repeat i from 16 to 23
-        outa[23..16]~
-        outa[i]~~
-        wait_this_fraction_of_a_second(8)
-        
-      center_all_servos(8)
-      Tedasena(pace)
+
       {  &&&&&&&&&&&&&&&
        }    'begin
-        
+         {
         repeat 2
           pace:=500
           lean_right(pace)'lean right and tip left foot, arch up
@@ -99,10 +135,11 @@ PUB Main | i, ping_dist, pace
           lean_left(pace)'lean left and tip right foot, arch up
           pace:=200
           shift_right(pace)
-
+         }
         
        {     end
       } '&&&&&&&&&&&&&&&
+      {
       center_all_servos(3)
       Tedasena(pace)
       outa[23..16]~ 'lights off
@@ -113,24 +150,36 @@ PUB Main | i, ping_dist, pace
       Tedasena(pace) 
       wait_this_fraction_of_a_second(1)
       Relax
+      }
       
 PRI wait_this_fraction_of_a_second(the_decimal)'1/the_decimal, e.g. 1/2, 1/4th, 1/10
   waitcnt(clkfreq / the_decimal + cnt)'if the_decimal=4, then we wait 1/4 sec
 
 PRI look_up(the_duration)
-  'SERVO.Set(Servo_Head,2500)
-    'SetRamp(Pin, Width,Delay)<-- 100 = 1 sec 6000 = 1 min    
-  SERVO.SetRamp(Servo_Head,2500,the_duration)          'Pan Servo
-  
-  repeat the_duration
-    wait_this_fraction_of_a_second(600)
+  'SERVO.SetRamp(Pin, Width,Delay)<-- 100 = 1 sec 6000 = 1 min    
+  SERVO.SetRamp(Servo_Head,Head_Up,the_duration) 
+  pausefor(the_duration)
      
 PRI look_down(the_duration)
-  SERVO.SetRamp(Servo_Head,500,the_duration)
+  SERVO.SetRamp(Servo_Head,Head_Down,the_duration)
+  pausefor(the_duration)
+
+PRI look_ahead(the_duration)
+  SERVO.SetRamp(Servo_Head,Head_Level,the_duration)
+  pausefor(the_duration)
+
+PRI look_right(the_duration)
+  SERVO.SetRamp(Servo_Neck,Head_Right,the_duration)
+  pausefor(the_duration)
   
-  repeat the_duration
-    wait_this_fraction_of_a_second(600)
-  
+PRI look_forward(the_duration)
+  SERVO.SetRamp(Servo_Neck,Head_Forward,the_duration)
+  pausefor(the_duration) 
+
+PRI look_left(the_duration)
+  SERVO.SetRamp(Servo_Neck,Head_Left,the_duration)
+  pausefor(the_duration)
+ 
 PRI lean_right(the_duration)'lean right and tip right foot, arch up
   SERVO.SetRamp(Servo_right_Foot,2500,the_duration)'center is 2200 
   'SERVO.Set(Servo_right_Foot,2500)'center is 2200
@@ -167,10 +216,10 @@ PRI shift_right(the_duration)
     wait_this_fraction_of_a_second(600)
       
 PRI Tedasena(the_duration)
-  SERVO.SetRamp(Servo_Head,1500,the_duration)                            'HEAD straight ahead
-  repeat the_duration
-    wait_this_fraction_of_a_second(600)
-      
+  'SERVO.SetRamp(Servo_Head,1500,the_duration)                            'HEAD straight ahead
+  look_forward(the_duration)
+  look_ahead(the_duration)
+        
 PRI Relax
   SERVO.Set(Servo_Head,0)
   wait_this_fraction_of_a_second(4)
@@ -184,27 +233,27 @@ PRI Relax
   wait_this_fraction_of_a_second(4)
   SERVO.Set(Servo_left_Foot,0)
   
-PRI center_all_servos(the_delay_time)
+PRI center_all_servos(the_duration)
   outa[23..16]~
   'the_delay_time := 1
   outa[16]~~
-  SERVO.Set(Servo_Head,1500)                          'HEAD straight ahead
-  wait_this_fraction_of_a_second(the_delay_time)
+  SERVO.SetRamp(Servo_Head,1500,the_duration)                          'HEAD straight ahead
+  pausefor(the_duration)
   outa[17]~~
-  SERVO.Set(Servo_Neck,1500)                          'NECK a little left of center
-  wait_this_fraction_of_a_second(the_delay_time)  
+  SERVO.SetRamp(Servo_Neck,1500,the_duration)                          'NECK a little left of center
+  pausefor(the_duration)  
   outa[18]~~
-  SERVO.Set(Servo_right_Hip,2200)                     'RIGHT HIP straight ahead
-  wait_this_fraction_of_a_second(the_delay_time)
+  SERVO.SetRamp(Servo_right_Hip,2200,the_duration)                     'RIGHT HIP straight ahead
+  pausefor(the_duration)
   outa[19]~~
-  SERVO.Set(Servo_right_Foot,2200)                    'RIGHT FOOT level
-  wait_this_fraction_of_a_second(the_delay_time)
+  SERVO.SetRamp(Servo_right_Foot,2200,the_duration)                    'RIGHT FOOT level
+  pausefor(the_duration)
   outa[20]~~
-  SERVO.Set(Servo_left_Hip,800)                       'LEFT HIP straight ahead
-  wait_this_fraction_of_a_second(the_delay_time)
+  SERVO.SetRamp(Servo_left_Hip,800,the_duration)                       'LEFT HIP straight ahead
+  pausefor(the_duration)
   outa[21]~~
-  SERVO.Set(Servo_left_Foot,1300)                     'LEFT FOOT level   2200 is tipped way in   800 is way out
-  wait_this_fraction_of_a_second(the_delay_time)
+  SERVO.SetRamp(Servo_left_Foot,1300,the_duration)                     'LEFT FOOT level   2200 is tipped way in   800 is way out
+  pausefor(the_duration)
   'Relax
     
   {
