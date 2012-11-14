@@ -94,6 +94,7 @@ PRI Position_Walkthrough   | the_duration
   'SERVO.SetRamp(Servo_Neck,2000,the_duration) '1500 is NECK a little left of center
   Lights_Off  
   pausefor(the_duration)
+  'a change
   
     
 PUB Main | i, ping_dist, pace
