@@ -28,9 +28,26 @@ CON
   Head_Up = 2300
   Head_Level = 1500
   Head_Down = 800
+  
   Head_Right = 2500
   Head_Forward = 1500
   Head_Left = 500
+
+  Foot_Right_Out = 2500
+  Foot_Right_Flat = 2200
+  Foot_Right_In = 1300 
+
+  Foot_Left_In = 2000
+  Foot_Left_Flat = 1300
+  Foot_Left_Out = 900
+
+  Right_Hip_In = 2300
+  Right_Hip_Ahead = 2200
+  Right_Hip_Out = 1500
+
+  Left_Hip_Out = 1100
+  Left_Hip_Ahead = 800  
+  Left_Hip_In = 600
   
 VAR
   Long ButtonState_Stack[20]'stack space allotment 
@@ -47,6 +64,7 @@ PRI Initialization
   Lights_On
   Relax
   Tedasena(1)
+  wait_this_fraction_of_a_second(1)
   SERVO.Start
   SERVO.Ramp
   'Relax
@@ -68,20 +86,24 @@ PRI Position_Walkthrough   | the_duration
   
   Lights_Off
   look_up(the_duration)
-  
+
+  the_duration:=90
   Lights_On
   look_down(the_duration)
-  
+
+  the_duration:=70
   Lights_Off
   look_ahead(the_duration)
 
+  the_duration:=40
   Lights_On
   look_left(the_duration) 
- 
+
+  the_duration:=20
   Lights_Off
   look_right(the_duration)
   pausefor(the_duration)
-  
+  the_duration:=10
   Lights_On
   look_forward(the_duration)
   'pausefor(the_duration)
@@ -95,17 +117,48 @@ PRI Position_Walkthrough   | the_duration
   Lights_Off  
   pausefor(the_duration)
   'a change
-  
+  repeat 3
+    wait_this_fraction_of_a_second(1)
     
+  the_duration:=200
+  tip_right(the_duration)
+  set_feet_flat(the_duration)
+  tip_left(the_duration)
+  swing_right(the_duration)
+  set_feet_flat(the_duration*2)
+  tip_right(the_duration)
+  swing_left(the_duration)
+  set_feet_flat(the_duration*2)
+  
+  wait_this_fraction_of_a_second(1)
+  
+PRI swing_head  | the_duration, i
+  the_duration:=300
+  look_forward(the_duration)
+  
+  repeat i from 10 to 3
+    the_duration:=10 * i
+     
+    look_right(the_duration)
+    look_left(the_duration)
+    
+  the_duration:=300
+  look_forward(the_duration)
+      
 PUB Main | i, ping_dist, pace
 
   Initialization
   
   'center_all_servos(250)'don't use this until all parts are callibrated
+  swing_head
   
   wait_this_fraction_of_a_second(1)
   Position_Walkthrough
+  
+  Lights_On
+  Tedasena(300)
   wait_this_fraction_of_a_second(1)
+  Lights_Off
   Relax
 
    'ButtonStateCheck
@@ -180,7 +233,41 @@ PRI look_forward(the_duration)
 PRI look_left(the_duration)
   SERVO.SetRamp(Servo_Neck,Head_Left,the_duration)
   pausefor(the_duration)
+
+PRI tip_left(the_duration)
+  SERVO.SetRamp(Servo_right_Foot,Foot_Right_In,the_duration)
+  pausefor(the_duration/3)
+  SERVO.SetRamp(Servo_left_Foot,Foot_Left_Out,the_duration)
+  pausefor(the_duration/2)
+
+PRI tip_right(the_duration)
+  SERVO.SetRamp(Servo_left_Foot,Foot_Left_In,the_duration)
+  pausefor(the_duration/3)
+  SERVO.SetRamp(Servo_right_Foot,Foot_Right_Out,the_duration)
+  pausefor(the_duration/2)
+
+PRI set_feet_flat(the_duration)
+  SERVO.SetRamp(Servo_right_Foot,Foot_Right_Flat,the_duration)
+  SERVO.SetRamp(Servo_left_Foot,Foot_Left_Flat,the_duration)'center is 1300   Foot_Left_Flat = 1300
+  pausefor(the_duration)
+
+PRI hips_ahead(the_duration)
+  SERVO.SetRamp(Servo_right_Hip,Right_Hip_Ahead,the_duration)'2200 is RIGHT HIP straight ahead
+  SERVO.SetRamp(Servo_left_Hip,Left_Hip_Ahead,the_duration)'800 is LEFT HIP straight ahead
+  pausefor(the_duration)
  
+PRI swing_right(the_duration)
+  SERVO.SetRamp(Servo_left_Hip,Left_Hip_In,the_duration/2)
+  SERVO.SetRamp(Servo_right_Hip,Right_Hip_Out,the_duration/2) 
+  look_right(the_duration)
+  'pausefor(the_duration)
+
+PRI swing_left(the_duration)
+  SERVO.SetRamp(Servo_right_Hip,Right_Hip_In,the_duration/2)
+  SERVO.SetRamp(Servo_left_Hip,Left_Hip_Out,the_duration/2)
+  look_left(the_duration)
+  'pausefor(the_duration)
+   
 PRI lean_right(the_duration)'lean right and tip right foot, arch up
   SERVO.SetRamp(Servo_right_Foot,2500,the_duration)'center is 2200 
   'SERVO.Set(Servo_right_Foot,2500)'center is 2200
@@ -216,22 +303,23 @@ PRI shift_right(the_duration)
   repeat the_duration
     wait_this_fraction_of_a_second(600)
       
-PRI Tedasena(the_duration)
-  'SERVO.SetRamp(Servo_Head,1500,the_duration)                            'HEAD straight ahead
+PRI Tedasena(the_duration) 
+  hips_ahead(the_duration/2) 
+  set_feet_flat(the_duration/2)
   look_forward(the_duration)
   look_ahead(the_duration)
-        
+       
 PRI Relax
   SERVO.Set(Servo_Head,0)
-  wait_this_fraction_of_a_second(4)
+  wait_this_fraction_of_a_second(8)
   SERVO.Set(Servo_Neck,0)
-  wait_this_fraction_of_a_second(4)
+  wait_this_fraction_of_a_second(8)
   SERVO.Set(Servo_right_Hip,0)
-  wait_this_fraction_of_a_second(4)
+  wait_this_fraction_of_a_second(8)
   SERVO.Set(Servo_right_Foot,0)
-  wait_this_fraction_of_a_second(4)
+  wait_this_fraction_of_a_second(8)
   SERVO.Set(Servo_left_Hip,0)
-  wait_this_fraction_of_a_second(4)
+  wait_this_fraction_of_a_second(8)
   SERVO.Set(Servo_left_Foot,0)
   
 PRI center_all_servos(the_duration)
