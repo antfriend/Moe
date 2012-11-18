@@ -35,11 +35,11 @@ CON
 
   Foot_Right_Out = 2500
   Foot_Right_Flat = 2200
-  Foot_Right_In = 1300 
+  Foot_Right_In = 1500 
 
   Foot_Left_In = 2000
   Foot_Left_Flat = 1300
-  Foot_Left_Out = 900
+  Foot_Left_Out = 1100
 
   Right_Hip_In = 2300
   Right_Hip_Ahead = 2200
@@ -79,9 +79,8 @@ PRI Lights_Off
 PRI pausefor(this_long)
   repeat this_long
     wait_this_fraction_of_a_second(120)'this sets pace - smaller is slower, like 100, bigger is faster, like 500
-    
-PRI Position_Walkthrough   | the_duration
 
+PRI Move_Head_All_Around  | the_duration  
   the_duration:=100
   
   Lights_Off
@@ -89,7 +88,7 @@ PRI Position_Walkthrough   | the_duration
 
   the_duration:=90
   Lights_On
-  look_down(the_duration)
+  look_down(the_duration) 
 
   the_duration:=70
   Lights_Off
@@ -101,12 +100,17 @@ PRI Position_Walkthrough   | the_duration
 
   the_duration:=20
   Lights_Off
-  look_right(the_duration)
+  look_right(the_duration) 
   pausefor(the_duration)
   the_duration:=10
   Lights_On
   look_forward(the_duration)
   'pausefor(the_duration)
+    
+PRI Position_Walkthrough   | the_duration
+
+  'swing_head
+  'Move_Head_All_Around
   
   'SERVO.SetRamp(Servo_right_Hip,2500,the_duration)'2200 is RIGHT HIP straight ahead
   'SERVO.SetRamp(Servo_left_Hip,1500,the_duration)'800 is LEFT HIP straight ahead
@@ -150,8 +154,7 @@ PUB Main | i, ping_dist, pace
   Initialization
   
   'center_all_servos(250)'don't use this until all parts are callibrated
-  swing_head
-  
+    
   wait_this_fraction_of_a_second(1)
   Position_Walkthrough
   
