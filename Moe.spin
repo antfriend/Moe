@@ -29,25 +29,25 @@ CON
   Head_Level = 1500
   Head_Down = 800
   
-  Head_Right = 2500
-  Head_Forward = 1500
-  Head_Left = 500
+  Head_Right = 1900
+  Head_Forward = 1450
+  Head_Left = 1000
 
-  Foot_Right_Out = 2500
+  Foot_Right_Out = 2400
   Foot_Right_Flat = 2200
   Foot_Right_In = 1500 
 
-  Foot_Left_In = 2000
+  Foot_Left_Out = 1200
   Foot_Left_Flat = 1300
-  Foot_Left_Out = 1100
+  Foot_Left_In = 1800
 
-  Right_Hip_In = 2300
-  Right_Hip_Ahead = 2200
-  Right_Hip_Out = 1500
+  Right_Hip_In = 2490
+  Right_Hip_Ahead = 2100
+  Right_Hip_Out = 1800
 
   Left_Hip_Out = 1100
   Left_Hip_Ahead = 800  
-  Left_Hip_In = 600
+  Left_Hip_In = 500
   
 VAR
   Long ButtonState_Stack[20]'stack space allotment 
@@ -121,18 +121,28 @@ PRI Position_Walkthrough   | the_duration
   Lights_Off  
   pausefor(the_duration)
   'a change
-  repeat 3
-    wait_this_fraction_of_a_second(1)
+  'repeat 3
+  '  wait_this_fraction_of_a_second(1)
     
-  the_duration:=200
-  tip_right(the_duration)
-  set_feet_flat(the_duration)
-  tip_left(the_duration)
-  swing_right(the_duration)
-  set_feet_flat(the_duration*2)
-  tip_right(the_duration)
-  swing_left(the_duration)
-  set_feet_flat(the_duration*2)
+  the_duration:=100
+  repeat 0  
+    tip_right(the_duration)
+    'pausefor(the_duration)
+    set_feet_flat(the_duration)
+    tip_left(the_duration)
+    'pausefor(the_duration)
+    set_feet_flat(the_duration)
+
+  repeat 4
+    tip_left(the_duration)
+    look_right(the_duration)
+    swing_right(the_duration)
+    set_feet_flat(the_duration*2)
+     
+    tip_right(the_duration)
+    look_left(the_duration)
+    swing_left(the_duration)
+    set_feet_flat(the_duration*2)
   
   wait_this_fraction_of_a_second(1)
   
@@ -238,20 +248,18 @@ PRI look_left(the_duration)
   pausefor(the_duration)
 
 PRI tip_left(the_duration)
+  SERVO.SetRamp(Servo_left_Foot,Foot_Left_Out,the_duration/2)
   SERVO.SetRamp(Servo_right_Foot,Foot_Right_In,the_duration)
-  pausefor(the_duration/3)
-  SERVO.SetRamp(Servo_left_Foot,Foot_Left_Out,the_duration)
-  pausefor(the_duration/2)
+  pausefor(the_duration)
 
 PRI tip_right(the_duration)
+  SERVO.SetRamp(Servo_right_Foot,Foot_Right_Out,the_duration/2)
   SERVO.SetRamp(Servo_left_Foot,Foot_Left_In,the_duration)
-  pausefor(the_duration/3)
-  SERVO.SetRamp(Servo_right_Foot,Foot_Right_Out,the_duration)
-  pausefor(the_duration/2)
+  pausefor(the_duration)
 
 PRI set_feet_flat(the_duration)
-  SERVO.SetRamp(Servo_right_Foot,Foot_Right_Flat,the_duration)
-  SERVO.SetRamp(Servo_left_Foot,Foot_Left_Flat,the_duration)'center is 1300   Foot_Left_Flat = 1300
+  SERVO.SetRamp(Servo_right_Foot,Foot_Right_Flat,the_duration/2)
+  SERVO.SetRamp(Servo_left_Foot,Foot_Left_Flat,the_duration/2)'center is 1300   Foot_Left_Flat = 1300
   pausefor(the_duration)
 
 PRI hips_ahead(the_duration)
@@ -261,15 +269,15 @@ PRI hips_ahead(the_duration)
  
 PRI swing_right(the_duration)
   SERVO.SetRamp(Servo_left_Hip,Left_Hip_In,the_duration/2)
-  SERVO.SetRamp(Servo_right_Hip,Right_Hip_Out,the_duration/2) 
-  look_right(the_duration)
-  'pausefor(the_duration)
+  SERVO.SetRamp(Servo_right_Hip,Right_Hip_Out,the_duration) 
+  'look_right(the_duration)
+  pausefor(the_duration)
 
 PRI swing_left(the_duration)
   SERVO.SetRamp(Servo_right_Hip,Right_Hip_In,the_duration/2)
-  SERVO.SetRamp(Servo_left_Hip,Left_Hip_Out,the_duration/2)
-  look_left(the_duration)
-  'pausefor(the_duration)
+  SERVO.SetRamp(Servo_left_Hip,Left_Hip_Out,the_duration)
+  'look_left(the_duration)
+  pausefor(the_duration)
    
 PRI lean_right(the_duration)'lean right and tip right foot, arch up
   SERVO.SetRamp(Servo_right_Foot,2500,the_duration)'center is 2200 
