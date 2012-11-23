@@ -10,7 +10,9 @@
 CON
 '********************************************************************
   _CLKMODE = XTAL1 + PLL16X 
-  _CLKFREQ = 80_000_000
+  '_CLKFREQ = 80_000_000
+  '_clkmode = xtal1 + pll16x
+  _xinfreq = 5_000_000
 '********************************************************************
    ' _XINFREQ = 5_000_000
 
@@ -51,13 +53,14 @@ CON
   
 VAR
   Long ButtonState_Stack[20]'stack space allotment 
+  Long Serial_On
     
 OBJ
 
   'Buttons          : "Touch Buttons"
   SERVO            : "Servo32v7.spin"
   ping             : "Ping"
-  'DEBUG            : "Parallax Serial Terminal"                            ' for debugging
+  DEBUG            : "Parallax Serial Terminal"                            ' for debugging
 
 PRI Initialization
   dira[23..16]~~                                        ' Set the LEDs as outputs
@@ -68,7 +71,21 @@ PRI Initialization
   SERVO.Start
   SERVO.Ramp
   'Relax
+  Initialize_Serial
   wait_this_fraction_of_a_second(1)
+
+PRI Initialize_Serial
+  Serial_On := 0
+  if DEBUG.start(250000)
+    Serial_On := 1
+
+PRI Serial_String(this_string)
+  if Serial_On == 1
+    DEBUG.Str(this_string)
+
+PRI Serial_Number(this_number)
+  if Serial_On == 1
+    DEBUG.Dec(this_number)
   
 PRI Lights_On
     outa[23..16]~~
@@ -164,7 +181,17 @@ PUB Main | i, ping_dist, pace
   Initialization
   
   'center_all_servos(250)'don't use this until all parts are callibrated
-    
+
+  repeat 9
+    Serial_String(String("*"))
+    wait_this_fraction_of_a_second(3)
+  Serial_String(String(DEBUG#CS))   
+  Serial_String(String(DEBUG#NL, DEBUG#NL, "~~~MOE~~~", DEBUG#NL))
+  ping_dist := ping.Ticks(Ping_In, Ping_Out)
+  Serial_String(String("PING!",DEBUG#NL))
+  'Serial_String(String(DEBUG#NL, DEBUG#NL, "~~~MOE~~~", DEBUG#NL))
+  Serial_Number(ping_dist)
+  
   wait_this_fraction_of_a_second(1)
   Position_Walkthrough
   
@@ -173,6 +200,7 @@ PUB Main | i, ping_dist, pace
   wait_this_fraction_of_a_second(1)
   Lights_Off
   Relax
+  
 
    'ButtonStateCheck
      {
