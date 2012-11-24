@@ -10,11 +10,10 @@
 CON
 '********************************************************************
   _CLKMODE = XTAL1 + PLL16X 
-  '_CLKFREQ = 80_000_000
-  '_clkmode = xtal1 + pll16x
-  _xinfreq = 5_000_000
+  _CLKFREQ = 80_000_000
+
 '********************************************************************
-   ' _XINFREQ = 5_000_000
+
 
   Blab = 0
   Servo_Head = 11
@@ -58,13 +57,30 @@ VAR
 OBJ
 
   'Buttons          : "Touch Buttons"
+  clock            : "Clock"
   SERVO            : "Servo32v7.spin"
   ping             : "Ping"
   DEBUG            : "Parallax Serial Terminal"                            ' for debugging
 
+PRI wait_this_fraction_of_a_second(the_decimal)'1/the_decimal, e.g. 1/2, 1/4th, 1/10
+  waitcnt(clkfreq / the_decimal + cnt)'if the_decimal=4, then we wait 1/4 sec
+
 PRI Initialization
-  dira[23..16]~~                                        ' Set the LEDs as outputs
+  clock.Init(5_000_000)
+  clock.SetClock(_CLKMODE)
+  
+  dira[23..16]~~
+  repeat 4                                      ' Set the LEDs as outputs
+    Lights_On
+    clock.PauseMSec(250)
+    'wait_this_fraction_of_a_second(5000)
+    'pause(1000)
+    Lights_Off
+    clock.PauseMSec(250)
+    'wait_this_fraction_of_a_second(5000)
+    'pause(1000)
   Lights_On
+  
   Relax
   Tedasena(1)
   wait_this_fraction_of_a_second(1)
@@ -187,12 +203,16 @@ PUB Main | i, ping_dist, pace
     wait_this_fraction_of_a_second(3)
   Serial_String(String(DEBUG#CS))   
   Serial_String(String(DEBUG#NL, DEBUG#NL, "~~~MOE~~~", DEBUG#NL))
+  Serial_Number(clkfreq)
   ping_dist := ping.Ticks(Ping_In, Ping_Out)
-  Serial_String(String("PING!",DEBUG#NL))
+  Serial_String(String(DEBUG#NL, "PING!",DEBUG#NL))
   'Serial_String(String(DEBUG#NL, DEBUG#NL, "~~~MOE~~~", DEBUG#NL))
-  Serial_Number(ping_dist)
+  repeat 1000
+    ping_dist := ping.Ticks(Ping_In, Ping_Out)
+    Serial_String(String(DEBUG#NL, "PING!",DEBUG#NL))
+    Serial_Number(ping_dist)
+    clock.PauseMSec(250)
   
-  wait_this_fraction_of_a_second(1)
   Position_Walkthrough
   
   Lights_On
@@ -246,9 +266,6 @@ PUB Main | i, ping_dist, pace
       wait_this_fraction_of_a_second(1)
       Relax
       }
-      
-PRI wait_this_fraction_of_a_second(the_decimal)'1/the_decimal, e.g. 1/2, 1/4th, 1/10
-  waitcnt(clkfreq / the_decimal + cnt)'if the_decimal=4, then we wait 1/4 sec
 
 PRI look_up(the_duration)
   'SERVO.SetRamp(Pin, Width,Delay)<-- 100 = 1 sec 6000 = 1 min    
